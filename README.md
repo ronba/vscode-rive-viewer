@@ -17,13 +17,18 @@ N/A.
 
 ## Extension Settings
 
-N/A.
+- `riveviewer.externalDirectories` - directories from which vscode is allowed to display .riv files.
+  By default only riv files in the current workspace and from the extension directory can be displayed.
 
 ## Known Issues
 
 Please report issues [here](https://github.com/ronba/vscode-rive-viewer).
 
 ## Release Notes
+
+### 0.2.0
+
+Add support for `riveviewer.externalDirectories`.
 
 ### 0.1.0
 

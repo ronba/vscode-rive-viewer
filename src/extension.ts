@@ -1,8 +1,12 @@
+import {dirname, isAbsolute, relative} from 'path';
+
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(RiveViewerEditorProvider.register(context));
 }
+
+const externalDirectoriesSetting = 'riveviewer.externalDirectories';
 
 export function deactivate() {}
 
@@ -55,11 +59,39 @@ export class RiveViewerEditorProvider
     _token: vscode.CancellationToken
   ): void | Thenable<void> {
     const webview = webviewPanel.webview;
-    webview.options = {enableScripts: true};
-    const selectedAsset = webview.asWebviewUri(document.uri);
-    const riveScript = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, 'assets', 'rive.min.js')
+
+    const selectedAsset = document.uri.with({scheme: 'vscode-resource'});
+    const userAdditionalDirectories = vscode.workspace
+      .getConfiguration()
+      .get(externalDirectoriesSetting) as string[];
+
+    const userRoots = userAdditionalDirectories.map(directory =>
+      vscode.Uri.file(directory)
     );
+
+    const roots = [vscode.Uri.file(this._context.extensionPath)].concat(
+      userRoots
+    );
+    const workspaceRoots = vscode.workspace.workspaceFolders;
+    if (workspaceRoots && workspaceRoots.length > 0) {
+      for (const root of workspaceRoots) {
+        roots.push(root.uri);
+      }
+    }
+
+    // Configure supported roots, add additional user directories.
+    webview.options = {
+      enableScripts: true,
+      localResourceRoots: roots,
+    };
+
+    validateResource(webview.options.localResourceRoots!, document.uri);
+
+    const riveScript = vscode.Uri.joinPath(
+      this._context.extensionUri,
+      'assets',
+      'rive.min.js'
+    ).with({scheme: 'vscode-resource'});
 
     const styleSheet = webview.asWebviewUri(
       vscode.Uri.joinPath(
@@ -70,16 +102,28 @@ export class RiveViewerEditorProvider
       )
     );
 
-    const riveViewer = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._context.extensionUri,
-        'dist',
-        'viewer',
-        'rive.js'
-      )
-    );
+    const riveViewer = vscode.Uri.joinPath(
+      this._context.extensionUri,
+      'dist',
+      'viewer',
+      'rive.js'
+    ).with({scheme: 'vscode-resource'});
+
+    const nonce = getNonce();
+    const contentSecurityPolicy = [
+      "default-src 'none';",
+      `style-src ${webview.cspSource};`,
+      `img-src ${webview.cspSource} https:;`,
+      // Rive runtime seems to require unsafe-eval.
+      `script-src 'nonce-${nonce}' 'unsafe-eval' https:;`,
+      `connect-src ${webview.cspSource}`,
+    ].join(' ');
     webview.html = /* html */ `
+<head>
+  <meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">
+</head>
 <link rel="stylesheet" href="${styleSheet}">
+
 <div id="viewer">
 	<canvas id="canvas" width="400" height="300"></canvas>
   <div id="contents">
@@ -99,8 +143,8 @@ export class RiveViewerEditorProvider
 		</div>
   </div>
 </div>
-<script src="${riveScript}"></script>
-<script src="${riveViewer}" file="${selectedAsset}"></script>
+<script nonce="${nonce}" src="${riveScript}"></script>
+<script nonce="${nonce}" src="${riveViewer}" file="${selectedAsset}"></script>
 	`;
   }
 
@@ -129,4 +173,35 @@ export class RiveDocument
     super(() => {});
     this._uri = uri;
   }
+}
+
+function getNonce() {
+  let text = '';
+  const possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+function validateResource(
+  localResourceRoots: readonly vscode.Uri[],
+  documentUri: vscode.Uri
+) {
+  console.log('Validating whether ' + documentUri.path + ' is allowed.');
+  for (const root of localResourceRoots) {
+    const relativePath = relative(root.path, documentUri.path);
+    console.log(
+      'Resolved relative path from ' + root.path + ': ' + relativePath
+    );
+
+    if (!relativePath.startsWith('..') && !isAbsolute(relativePath)) {
+      return true;
+    }
+  }
+
+  const parentDir = dirname(documentUri.fsPath);
+  vscode.window.showErrorMessage(
+    `To view "${documentUri.fsPath}" from the current workspace add "${parentDir}" (or a parent of that directory) to "${externalDirectoriesSetting}".`
+  );
 }

@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/ronba/vscode-rive-viewer"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.59.0"
   },
@@ -20,6 +20,16 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "RiveViewer",
+      "properties": {
+        "riveviewer.externalDirectories": {
+          "type": "array",
+          "default": [],
+          "description": "List of directories in addition to the current workspace from which the extension is allowed to display .riv files."
+        }
+      }
+    },
     "customEditors": [
       {
         "viewType": "riveViewer.rivView",
