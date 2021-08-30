@@ -3,10 +3,6 @@
     "out": false,
     "dist": false
   },
-  "search.exclude": {
-    "out": true,
-    "dist": true
-  },
   "typescript.tsc.autoDetect": "off",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
