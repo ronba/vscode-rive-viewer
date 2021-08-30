@@ -1,8 +1,12 @@
 {
-  "name": "rive-viewer",
-  "displayName": "rive_viewer",
-  "description": "A simple viewer for Rive files ( https://rive.app/ ).",
+  "name": "vscode-rive-viewer",
+  "displayName": "vscode-rive-viewer",
+  "description": "A simple viewer for riv files.",
   "publisher": "ronba",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ronba/vscode-rive-viewer"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.59.0"

@@ -1,6 +1,9 @@
 # rive-viewer README
 
-Allows viewing rive file directly in the browser.
+Open [.riv](https://rive.app/) files directly in vscode.
+
+![screenshot](https://raw.githubusercontent.com/ronba/vscode-rive-viewer/main/screenshot.png)
+This extension uses the rive [javascript sdk](https://github.com/rive-app/rive-wasm) to provides a webview of a riv animation file.
 
 ## Features
 
@@ -18,7 +21,7 @@ N/A.
 
 ## Known Issues
 
-N/A.
+Please report issues [here](https://github.com/ronba/vscode-rive-viewer).
 
 ## Release Notes
 
