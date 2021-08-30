@@ -110,9 +110,6 @@ export class RiveViewerEditorProvider
       this.viewType,
       new RiveViewerEditorProvider(context),
       {
-        webviewOptions: {
-          retainContextWhenHidden: true,
-        },
         supportsMultipleEditorsPerDocument: false,
       }
     );
