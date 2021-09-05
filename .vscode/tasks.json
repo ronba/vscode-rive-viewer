@@ -11,7 +11,16 @@
         "cwd": "viewer"
       },
       "command": "flutter",
-      "args": ["build", "web", "--csp", "--release", "--pwa-strategy", "none"]
+      "args": [
+        "build",
+        "web",
+        "--csp",
+        "--release",
+        "--pwa-strategy",
+        "none",
+        "--web-renderer",
+        "html"
+      ]
     },
     {
       "label": "watch",
