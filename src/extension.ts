@@ -87,65 +87,97 @@ export class RiveViewerEditorProvider
 
     validateResource(webview.options.localResourceRoots!, document.uri);
 
-    const riveScript = vscode.Uri.joinPath(
-      this._context.extensionUri,
-      'assets',
-      'rive.min.js'
-    ).with({scheme: 'vscode-resource'});
-
-    const styleSheet = webview.asWebviewUri(
+    const flutterMain = webview.asWebviewUri(
       vscode.Uri.joinPath(
         this._context.extensionUri,
-        'assets',
         'viewer',
-        'style.css'
+        'build',
+        'web',
+        'main.dart.js'
       )
     );
 
-    const riveViewer = vscode.Uri.joinPath(
-      this._context.extensionUri,
-      'dist',
-      'viewer',
-      'rive.js'
-    ).with({scheme: 'vscode-resource'});
+    const root = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, 'viewer', 'build', 'web')
+    );
+
+    const manifest = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        'viewer',
+        'build',
+        'web',
+        'manifest.json'
+      )
+    );
 
     const nonce = getNonce();
-    const contentSecurityPolicy = [
-      "default-src 'none';",
-      `style-src ${webview.cspSource};`,
-      `img-src ${webview.cspSource} https:;`,
-      // Rive runtime seems to require unsafe-eval.
-      `script-src 'nonce-${nonce}' 'unsafe-eval' https:;`,
-      `connect-src ${webview.cspSource}`,
-    ].join(' ');
-    webview.html = /* html */ `
-<head>
-  <meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">
-</head>
-<link rel="stylesheet" href="${styleSheet}">
 
-<div id="viewer">
-	<canvas id="canvas" width="400" height="300"></canvas>
-  <div id="contents">
-		<h2 id="currentArtboard"></h2>
-    <div id="artboards">
-		  <label>Artboards</label>
-		</div>
+    const policy = [
+      "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; ",
+      "script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; ",
+      "connect-src * data: blob: 'unsafe-inline'; ",
+      "img-src * data: blob: 'unsafe-inline'; ",
+      'frame-src * data: blob: ; ',
+      "style-src * data: blob: 'unsafe-inline';",
+      "font-src * data: blob: 'unsafe-inline';",
+    ].join(' ');
+
+    webview.html = `
+    <!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+  -->
+  <base href="${root}">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="viewer">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <title>viewer</title>
+  <link rel="manifest" href="${manifest}">
+</head>
+<body>
+  <div id="selectedAsset" file="${selectedAsset}"></div>
+  <!-- This script installs service_worker.js to provide PWA functionality to
+       application. For more information, see:
+       https://developers.google.com/web/fundamentals/primers/service-workers -->
+  <script>
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+    function loadMainDartJs() {
+      if (scriptLoaded) {
+        return;
+      }
+      scriptLoaded = true;
+      var scriptTag = document.createElement('script');
+      scriptTag.src = '${flutterMain}';
+      scriptTag.type = 'application/javascript';
+      document.body.append(scriptTag);
+    }
+
+    loadMainDartJs();
     
-		<div id=animations class="section">
-			<h3>Animations</h3>
-			<div id="animationsDetails"></div>
-		</div>
-		
-		<div id=stateMachines class="section">
-			<h3>State Machines</h3>
-    	<div id="stateMachinesDetails"></div>
-		</div>
-  </div>
-</div>
-<script nonce="${nonce}" src="${riveScript}"></script>
-<script nonce="${nonce}" src="${riveViewer}" file="${selectedAsset}"></script>
-	`;
+  </script>
+</body>
+</html>
+
+    `;
   }
 
   private static readonly viewType = 'riveViewer.rivView';

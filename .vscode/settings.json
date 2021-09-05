@@ -5,6 +5,14 @@
   },
   "typescript.tsc.autoDetect": "off",
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.words": ["nosources", "ronba", "vsceignore", "webpack'ed"]
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.words": [
+    "nosources",
+    "riveviewer",
+    "ronba",
+    "vsceignore",
+    "webpack'ed"
+  ]
 }
