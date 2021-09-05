@@ -3,12 +3,27 @@
     "out": false,
     "dist": false
   },
+  "dart.previewLsp": true,
+  "dart.enableSdkFormatter": true,
+  "[dart]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.suggest.insertMode": "replace",
+    "editor.formatOnSave": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true,
+    "source.sortMembers": true
+  },
   "typescript.tsc.autoDetect": "off",
   "editor.formatOnSave": true,
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.words": [
+    "autoplay",
     "nosources",
     "riveviewer",
     "ronba",
