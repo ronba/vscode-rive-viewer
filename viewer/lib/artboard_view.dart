@@ -3,10 +3,26 @@ import 'package:flutter/widgets.dart';
 import 'package:rive/rive.dart';
 
 final Map<int, TextStyle> indentToTextStyleMap = {
-  0: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white),
-  1: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.white),
-  2: TextStyle(fontWeight: FontWeight.w300, fontSize: 14, color: Colors.white),
-  3: TextStyle(fontWeight: FontWeight.w300, fontSize: 14, color: Colors.white),
+  0: const TextStyle(
+    fontWeight: FontWeight.w700,
+    fontSize: 18,
+    color: Colors.white,
+  ),
+  1: const TextStyle(
+    fontWeight: FontWeight.w600,
+    fontSize: 16,
+    color: Colors.white,
+  ),
+  2: const TextStyle(
+    fontWeight: FontWeight.w300,
+    fontSize: 14,
+    color: Colors.white,
+  ),
+  3: const TextStyle(
+    fontWeight: FontWeight.w300,
+    fontSize: 14,
+    color: Colors.white,
+  ),
 };
 
 class ArtboardView extends StatefulWidget {
@@ -30,12 +46,12 @@ class IndentedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTextStyle(
-      style: indentToTextStyleMap[indent] ?? TextStyle(),
+      style: indentToTextStyleMap[indent] ?? const TextStyle(),
       child: Container(
         margin: EdgeInsets.only(
           left: (20 * indent).toDouble(),
-          top: (10 * 1 / (indent == 0 ? 0.5 : indent)).toDouble(),
-          bottom: (5 * 1 / (indent == 0 ? 0.5 : indent)).toDouble(),
+          top: 10 * 1 / (indent == 0 ? 0.5 : indent),
+          bottom: 5 * 1 / (indent == 0 ? 0.5 : indent),
         ),
         child: child,
       ),
@@ -44,8 +60,8 @@ class IndentedItem extends StatelessWidget {
 }
 
 class _ArtboardViewState extends State<ArtboardView> {
-  Map<String, RiveAnimationController> _animationControllers = {};
-  Map<StateMachine, StateMachineController> _stateMachineControllers = {};
+  final Map<String, RiveAnimationController> _animationControllers = {};
+  final Map<StateMachine, StateMachineController> _stateMachineControllers = {};
   BoxFit _fit = BoxFit.contain;
   @override
   Widget build(BuildContext context) {
@@ -54,102 +70,109 @@ class _ArtboardViewState extends State<ArtboardView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
         Expanded(
           child: ListView(
             children: [
               IndentedItem(
-                  indent: 0,
-                  child: SelectableText(
-                    artboard.name,
-                  )),
-              if (artboard.stateMachines.length > 0)
+                indent: 0,
+                child: SelectableText(
+                  artboard.name,
+                ),
+              ),
+              if (artboard.stateMachines.isNotEmpty)
                 Column(
-                    children: artboard.stateMachines.map((stateMachine) {
-                  final controller = _stateMachineControllers[stateMachine]!;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      IndentedItem(
-                          indent: 1, child: SelectableText("State Machines")),
-                      IndentedItem(
-                        indent: 2,
-                        child: SelectableText(stateMachine.name),
-                      ),
-                      ...controller.inputs.map(
-                        (input) {
-                          final Widget controllerWidget;
-                          switch (input.type) {
-                            case SMIType.number:
-                              final textController = TextEditingController();
+                  children: artboard.stateMachines.map((stateMachine) {
+                    final controller = _stateMachineControllers[stateMachine]!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const IndentedItem(
+                          indent: 1,
+                          child: SelectableText("State Machines"),
+                        ),
+                        IndentedItem(
+                          indent: 2,
+                          child: SelectableText(stateMachine.name),
+                        ),
+                        ...controller.inputs.map(
+                          (input) {
+                            final Widget controllerWidget;
+                            switch (input.type) {
+                              case SMIType.number:
+                                final textController = TextEditingController();
 
-                              textController.addListener(() {
-                                (input as SMINumber).value = double.tryParse(
-                                        textController.value.text) ??
-                                    0;
-                              });
-                              controllerWidget = TextField(
-                                controller: textController,
-                                keyboardType: TextInputType.number,
-                              );
+                                textController.addListener(() {
+                                  (input as SMINumber).value = double.tryParse(
+                                        textController.value.text,
+                                      ) ??
+                                      0;
+                                });
+                                controllerWidget = TextField(
+                                  controller: textController,
+                                  keyboardType: TextInputType.number,
+                                );
 
-                              break;
-                            case SMIType.boolean:
-                              controllerWidget = TextButton(
-                                child: Text('fire'),
-                                onPressed: () {
-                                  (input as SMIBool).value = !input.value;
-                                },
-                              );
-                              break;
-                            case SMIType.trigger:
-                              controllerWidget = TextButton(
-                                child: Text('fire'),
-                                onPressed: () {
-                                  (input as SMITrigger).fire();
-                                },
-                              );
-                              break;
-                          }
+                                break;
+                              case SMIType.boolean:
+                                controllerWidget = TextButton(
+                                  child: const Text('fire'),
+                                  onPressed: () {
+                                    (input as SMIBool).value = !input.value;
+                                  },
+                                );
+                                break;
+                              case SMIType.trigger:
+                                controllerWidget = TextButton(
+                                  child: const Text('fire'),
+                                  onPressed: () {
+                                    (input as SMITrigger).fire();
+                                  },
+                                );
+                                break;
+                            }
 
-                          return IndentedItem(
-                            indent: 3,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(flex: 8, child: Text(input.name)),
-                                Expanded(flex: 2, child: controllerWidget),
-                                Spacer()
-                              ],
-                            ),
-                          );
-                        },
-                      )
-                    ],
-                  );
-                }).toList()),
+                            return IndentedItem(
+                              indent: 3,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(flex: 8, child: Text(input.name)),
+                                  Expanded(flex: 2, child: controllerWidget),
+                                  const Spacer()
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      ],
+                    );
+                  }).toList(),
+                ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IndentedItem(
+                  const IndentedItem(
                     indent: 1,
                     child: Text('Animations'),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ...artboard.animations.map((animation) {
                     final controller = _animationControllers[animation.name];
-                    var isActive = controller?.isActive ?? false;
+                    final isActive = controller?.isActive ?? false;
 
                     return Container(
                       color: isActive ? Colors.black.withOpacity(0.5) : null,
                       child: IndentedItem(
                         indent: 2,
                         child: Row(
-                          mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Expanded(
-                                flex: 8, child: SelectableText(animation.name)),
+                              flex: 8,
+                              child: SelectableText(animation.name),
+                            ),
                             Expanded(
                               flex: 2,
                               child: TextButton(
@@ -161,7 +184,7 @@ class _ArtboardViewState extends State<ArtboardView> {
                                 },
                               ),
                             ),
-                            Spacer(),
+                            const Spacer(),
                           ],
                         ),
                       ),
@@ -172,7 +195,7 @@ class _ArtboardViewState extends State<ArtboardView> {
             ],
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           flex: 2,
           child: Stack(
@@ -187,23 +210,26 @@ class _ArtboardViewState extends State<ArtboardView> {
                 children: [
                   ...BoxFit.values.map((fit) {
                     final fitName = fit.toString().splitMapJoin(
-                        RegExp('(BoxFit\.)([a-z]+)'),
-                        onMatch: (m) => "${m[2]!} ",
-                        onNonMatch: (m) => m.toLowerCase());
+                          RegExp('(BoxFit.)([a-z]+)'),
+                          onMatch: (m) => "${m[2]!} ",
+                          onNonMatch: (m) => m.toLowerCase(),
+                        );
 
                     return TextButton(
-                      child: Text(fitName),
                       style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.zero)),
-                          backgroundColor: MaterialStateProperty.all(
-                              Colors.black.withOpacity(0.8))),
+                        shape: MaterialStateProperty.all(
+                          const RoundedRectangleBorder(),
+                        ),
+                        backgroundColor: MaterialStateProperty.all(
+                          Colors.black.withOpacity(0.8),
+                        ),
+                      ),
                       onPressed: () {
                         setState(() {
                           _fit = fit;
                         });
                       },
+                      child: Text(fitName),
                     );
                   }).toList()
                 ],
@@ -238,16 +264,20 @@ class _ArtboardViewState extends State<ArtboardView> {
   void _changeArtboard(Artboard artboard) {
     for (var i = 0; i < artboard.animations.length; i++) {
       final animation = artboard.animations[i];
-      final animationController =
-          OneShotAnimation(animation.name, autoplay: i == 0, onStart: () {
-        if (mounted) {
-          setState(() {});
-        }
-      }, onStop: () {
-        if (mounted) {
-          setState(() {});
-        }
-      });
+      final animationController = OneShotAnimation(
+        animation.name,
+        autoplay: i == 0,
+        onStart: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+        onStop: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+      );
       artboard.addController(animationController);
       _animationControllers[animation.name] = animationController;
     }

@@ -16,8 +16,7 @@ void main() {
       // Using the home property will create a navigator which will fail inside
       // a vscode extension webview when it tries to change the page history.
       builder: (context, child) => Scaffold(
-        body: RivePageViewer(
-            assetPath: asset ?? 'http://192.168.1.157/onboarding.riv'),
+        body: RivePageViewer(assetPath: asset!),
       ),
     ),
   );
@@ -33,7 +32,7 @@ class RivePageViewer extends StatefulWidget {
 
 class _RivePageViewerState extends State<RivePageViewer> {
   RiveFile? _riveFile;
-  Widget? selectedArtboard = null;
+  Widget? selectedArtboard;
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +44,9 @@ class _RivePageViewerState extends State<RivePageViewer> {
       return ArtboardView(artboard: riveFile.mainArtboard);
     }
     return AnimatedSwitcher(
-      duration: Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 200),
       child: selectedArtboard == null
           ? ListView.builder(
-              scrollDirection: Axis.vertical,
               itemCount: riveFile.artboards.length,
               itemBuilder: (context, index) {
                 final artboard = riveFile.artboards[index];
@@ -59,15 +57,15 @@ class _RivePageViewerState extends State<RivePageViewer> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.white12),
                       ),
-                      child: view,
                       height: height,
                       width: MediaQuery.of(context).size.width,
+                      child: view,
                     ),
                     Positioned(
                       right: 30,
                       bottom: 10,
                       child: TextButton(
-                        child: Text('FULLSCREEN'),
+                        child: const Text('FULLSCREEN'),
                         onPressed: () {
                           setState(() {
                             selectedArtboard = view;
@@ -77,7 +75,8 @@ class _RivePageViewerState extends State<RivePageViewer> {
                     )
                   ],
                 );
-              })
+              },
+            )
           : Stack(
               children: [
                 selectedArtboard!,
@@ -85,7 +84,7 @@ class _RivePageViewerState extends State<RivePageViewer> {
                   right: 30,
                   bottom: 10,
                   child: TextButton(
-                    child: Text('EXIT FULLSCREEN'),
+                    child: const Text('EXIT FULLSCREEN'),
                     onPressed: () {
                       setState(() {
                         selectedArtboard = null;
