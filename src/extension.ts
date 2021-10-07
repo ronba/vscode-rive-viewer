@@ -1,5 +1,4 @@
 import {dirname, isAbsolute, relative} from 'path';
-
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -113,9 +112,9 @@ export class RiveViewerEditorProvider
 
     const nonce = getNonce();
 
-    const policy = [
+    const contentSecurityPolicy = [
       "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; ",
-      "script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; ",
+      "script-src 'nonce-${nonce}",
       "connect-src * data: blob: 'unsafe-inline'; ",
       "img-src * data: blob: 'unsafe-inline'; ",
       'frame-src * data: blob: ; ',
@@ -124,19 +123,11 @@ export class RiveViewerEditorProvider
     ].join(' ');
 
     webview.html = `
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+  <meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-  -->
   <base href="${root}">
 
   <meta charset="UTF-8">
@@ -157,7 +148,7 @@ export class RiveViewerEditorProvider
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
-  <script>
+  <script nonce="${nonce}">
     var serviceWorkerVersion = null;
     var scriptLoaded = false;
     function loadMainDartJs() {
