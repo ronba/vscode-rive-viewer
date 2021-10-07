@@ -16,11 +16,14 @@ void main() {
       // Using the home property will create a navigator which will fail inside
       // a vscode extension webview when it tries to change the page history.
       builder: (context, child) => Scaffold(
-        body: RivePageViewer(assetPath: asset!),
+        body:
+            RivePageViewer(assetPath: localAsset.isEmpty ? asset! : localAsset),
       ),
     ),
   );
 }
+
+const localAsset = String.fromEnvironment('LOCAL_ASSET');
 
 class RivePageViewer extends StatefulWidget {
   final String assetPath;
