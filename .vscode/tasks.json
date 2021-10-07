@@ -4,6 +4,26 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "viewer",
+      "type": "flutter",
+      "group": "build",
+      "options": {
+        "cwd": "viewer"
+      },
+      "command": "flutter",
+      "args": [
+        "build",
+        "web",
+        "--csp",
+        "--release",
+        "--pwa-strategy",
+        "none",
+        "--web-renderer",
+        "html"
+      ]
+    },
+    {
+      "label": "watch",
       "type": "npm",
       "script": "watch",
       "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"],
@@ -11,6 +31,7 @@
       "presentation": {
         "reveal": "never"
       },
+      "dependsOn": "viewer",
       "group": {
         "kind": "build",
         "isDefault": true

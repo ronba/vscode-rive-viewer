@@ -10,3 +10,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+
+# Exclude all files under viewer (flutter build files) and only include the files directly under Web.
+viewer/**/*
+!viewer/build/web/*

@@ -1,5 +1,4 @@
 import {dirname, isAbsolute, relative} from 'path';
-
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -87,65 +86,89 @@ export class RiveViewerEditorProvider
 
     validateResource(webview.options.localResourceRoots!, document.uri);
 
-    const riveScript = vscode.Uri.joinPath(
-      this._context.extensionUri,
-      'assets',
-      'rive.min.js'
-    ).with({scheme: 'vscode-resource'});
-
-    const styleSheet = webview.asWebviewUri(
+    const flutterMain = webview.asWebviewUri(
       vscode.Uri.joinPath(
         this._context.extensionUri,
-        'assets',
         'viewer',
-        'style.css'
+        'build',
+        'web',
+        'main.dart.js'
       )
     );
 
-    const riveViewer = vscode.Uri.joinPath(
-      this._context.extensionUri,
-      'dist',
-      'viewer',
-      'rive.js'
-    ).with({scheme: 'vscode-resource'});
+    const root = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, 'viewer', 'build', 'web')
+    );
+
+    const manifest = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        'viewer',
+        'build',
+        'web',
+        'manifest.json'
+      )
+    );
 
     const nonce = getNonce();
+
     const contentSecurityPolicy = [
-      "default-src 'none';",
-      `style-src ${webview.cspSource};`,
-      `img-src ${webview.cspSource} https:;`,
-      // Rive runtime seems to require unsafe-eval.
-      `script-src 'nonce-${nonce}' 'unsafe-eval' https:;`,
-      `connect-src ${webview.cspSource}`,
+      "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; ",
+      "script-src 'nonce-${nonce}",
+      "connect-src * data: blob: 'unsafe-inline'; ",
+      "img-src * data: blob: 'unsafe-inline'; ",
+      'frame-src * data: blob: ; ',
+      "style-src * data: blob: 'unsafe-inline';",
+      "font-src * data: blob: 'unsafe-inline';",
     ].join(' ');
-    webview.html = /* html */ `
+
+    webview.html = `
+<!DOCTYPE html>
+<html>
 <head>
   <meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">
-</head>
-<link rel="stylesheet" href="${styleSheet}">
 
-<div id="viewer">
-	<canvas id="canvas" width="400" height="300"></canvas>
-  <div id="contents">
-		<h2 id="currentArtboard"></h2>
-    <div id="artboards">
-		  <label>Artboards</label>
-		</div>
+  <base href="${root}">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="viewer">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <title>viewer</title>
+  <link rel="manifest" href="${manifest}">
+</head>
+<body>
+  <div id="selectedAsset" file="${selectedAsset}"></div>
+  <!-- This script installs service_worker.js to provide PWA functionality to
+       application. For more information, see:
+       https://developers.google.com/web/fundamentals/primers/service-workers -->
+  <script nonce="${nonce}">
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+    function loadMainDartJs() {
+      if (scriptLoaded) {
+        return;
+      }
+      scriptLoaded = true;
+      var scriptTag = document.createElement('script');
+      scriptTag.src = '${flutterMain}';
+      scriptTag.type = 'application/javascript';
+      document.body.append(scriptTag);
+    }
+
+    loadMainDartJs();
     
-		<div id=animations class="section">
-			<h3>Animations</h3>
-			<div id="animationsDetails"></div>
-		</div>
-		
-		<div id=stateMachines class="section">
-			<h3>State Machines</h3>
-    	<div id="stateMachinesDetails"></div>
-		</div>
-  </div>
-</div>
-<script nonce="${nonce}" src="${riveScript}"></script>
-<script nonce="${nonce}" src="${riveViewer}" file="${selectedAsset}"></script>
-	`;
+  </script>
+</body>
+</html>
+
+    `;
   }
 
   private static readonly viewType = 'riveViewer.rivView';
